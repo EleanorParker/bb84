@@ -4,6 +4,7 @@ Waveform Generator
 
 Todo:
 Perpare Device to send message at trigger point from laser
+
 '''
 
 import pyvisa
@@ -12,7 +13,7 @@ import time
 """
 EXPERIMENTAL PARAMETERS
 """
-# voltages in V 
+# voltages in V (MAX 5V)
 VOL_1 = 0
 VOL_2 = 0.25
 VOL_3 = 0.5
@@ -35,7 +36,7 @@ awg.write('OUTPut ON')
 Prepare Block
 """
 
-# dictionary of volatage values
+# dictionary of volatage values useful in the future?
 volages_def = {
     "H": VOL_1,
     "s_plus": VOL_2,
@@ -57,10 +58,29 @@ awg.write('DATA:COPY STEPFUNC')
 awg.write('FUNC:USER STEPFUNC')
 
 # execute message
-awg.write('APPL:USER 10, 5 Vpp, 0') #frequency, amplitude, offset
+awg.write('APPL:USER 100, 5 Vpp, 0') #frequency, amplitude, offset
 
+
+# set device to trigger
 
 # For pulse sweep 
+'
+awg.write('TRIG:SOUR EXT')
+#awg.write('OUTP:TRIG ON')
+awg.write('BURS:MODE TRIG')
+awg.write('BURS:NCYC 1')
+awg.write('BURS:STAT ON')
+
+
+'''
+#awg.write('OUTP:TRIG ON')
+awg.write('BURS:MODE TRIG')
+awg.write('BURS:NCYC 10')
+awg.write('BURS:INT:PER 4')
+awg.write('TRIG:SOUR IMM')
+awg.write('BURS:STAT ON')
+'''
+
 '''
 lower = 0
 upper = 5
