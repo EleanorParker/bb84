@@ -8,7 +8,7 @@ import nidaqmx
 import matplotlib.pyplot as plt
 import csv
 
-SWEEP_NAME = 'laser_1 10^-6'
+SWEEP_NAME = 'laser_2 3'
 
 """
 CONNECT TO AWG
@@ -25,10 +25,6 @@ CONNECT TO DAQ
 
 Connects to the DAQ device using nidaqmx
 """
-daq = nidaqmx.Task()
-daq.ai_channels.add_ai_voltage_chan("Dev1/ai1", min_val=0, max_val=5)
-print("Connected to DAQ device ID: " + str(daq.devices))
-
 
 """
 PREPARE SWEEP
@@ -51,26 +47,11 @@ for i in range(len(volts)):
     message += str(volts[i])
     awg.write(message)
     time.sleep(0.03)
-    power.append(daq.read())
-    print("vol: " + str(volts[i]) + " pow: " + str(power[i]))
+    print(volts[i])
 
 """
 MAKE PLOTS AND SAVE DATA
 """
-
-plt.figure()
-plt.plot(volts, power)
-plt.xlabel("Voltage")
-plt.ylabel("Power")
-plt.savefig('sweep_' + SWEEP_NAME + '.pdf')
-plt.savefig('sweep_' + SWEEP_NAME + '.png', dpi=1200)
-
-
-
-with open('sweep_data_' + SWEEP_NAME + '.csv', 'w') as f:
-    writer = csv.writer(f)
-    writer.writerows(zip(volts, power))
-
 
 """
 DISCONNECT DEVICES
@@ -78,5 +59,5 @@ DISCONNECT DEVICES
 The DAQ throws an error if not disconnected.
 """
 
-daq.close()
+
 plt.show()
