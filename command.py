@@ -5,6 +5,17 @@ Waveform Generator
 Todo:
 Perpare Device to send message at trigger point from laser
 
+Visa Notes
+    Useful pages:
+        223 burst mode commands
+    Start Shell (this is useful for experimentation with commands):
+        python -m visa shell
+        - list: lists devices
+        - open 0: connect to the device
+
+        - There are three types of commands
+                write read query
+
 '''
 
 import pyvisa
@@ -53,33 +64,40 @@ VOL_4 = VOL_4/5
 message = 'DATA VOLATILE, ' + str(VOL_1)  + ', '  + str(VOL_2) + ', ' + str(VOL_3) + ', ' + str(VOL_4)
 
 # read message into device
-awg.write(message)
+awg.write(message) # Load into volatile memory
 awg.write('DATA:COPY STEPFUNC')
-awg.write('FUNC:USER STEPFUNC')
+awg.write('FUNC:USER STEPFUNC') # Selects the user function
 
 # execute message
-awg.write('APPL:USER 100, 5 Vpp, 0') #frequency, amplitude, offset
+awg.write('APPL:USER 10, 5 Vpp, 0') #frequency, amplitude, offset
 
 
 # set device to trigger
 
 # For pulse sweep 
-'
-awg.write('TRIG:SOUR EXT')
-#awg.write('OUTP:TRIG ON')
-awg.write('BURS:MODE TRIG')
-awg.write('BURS:NCYC 1')
-awg.write('BURS:STAT ON')
-
 
 '''
+awg.write('TRIG:SOUR EXT')
+awg.write('BURS:MODE TRIG')
+awg.write('BURS:STAT ON')
+'''
+
+'''
+awg.write('OUTP:TRIG ON')
+awg.write('BURS:MODE TRIG')
+awg.write('BURS:NCYC 10')
+awg.write('BURS:INT:PER 4')
+awg.write('BURS:PHAS 0')
+awg.write('TRIG:SOUR IMM')
+awg.write('BURS:STAT ON')
+'''
+
 #awg.write('OUTP:TRIG ON')
 awg.write('BURS:MODE TRIG')
 awg.write('BURS:NCYC 10')
 awg.write('BURS:INT:PER 4')
 awg.write('TRIG:SOUR IMM')
 awg.write('BURS:STAT ON')
-'''
 
 '''
 lower = 0
