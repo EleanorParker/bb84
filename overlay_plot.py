@@ -22,7 +22,7 @@ if __name__ == "__main__":
     detector_2 = 'sweep_data_detector 2_7.csv'
     detector_3 = 'sweep_data_detector 3_7.csv'
     detector_4 = 'sweep_data_detector 4_7.csv'
-    path = 'sweep_data/2020-03-09/'
+    path = 'sweep_data/2020-03-11/'
 
     detector_1 = path + detector_1
     detector_2 = path + detector_2
