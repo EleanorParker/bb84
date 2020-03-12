@@ -3,40 +3,71 @@ import math
 import argparse
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-import matplotlib.mlab as mlab
 
 
-#Script to interact with the IDQ id800-tdc (time-to-digital converter)
-#Move to directory
-#cd “C:\Program Files\IDQuantique\userlib\src”
+def dark_counts(data, bin_width):
+    # Number of counts in each detector
+    counts1 = 0
+    counts2 = 0
+    counts3 = 0
+    counts4 = 0
+    # Amount of time for 1 bin in nanoseconds
+    clock_period = (81 / 10**6) * bin_width
+    N = len(data)
+    # Converting from bins to time (in seconds)
+    tot_time = (data[N-1][0] - data[0][0]) * clock_period * 10**-9
+    for (time, channel) in data:
+        if channel == 1.0:
+            counts1 += 1
+        if channel == 2.0:
+            counts2 += 1
+        if channel == 3.0:
+            counts3 += 1
+        if channel == 4.0:
+            counts4 += 1
+    rate1 = counts1 / tot_time
+    rate2 = counts2 / tot_time
+    rate3 = counts3 / tot_time
+    rate4 = counts4 / tot_time
+    return rate1, rate2, rate3, rate4
 
-#To record time tags for 10 seconds as text to the file “textfile.txt” use:
-#id800.exe –t 10 –f textfile.txt
 
-#Figure out if the signal is in the coincidence window of channel 8 (trigger).
+def jitter_and_delay(data, detector):
+    '''
+    Takes in a list of tuples (time, channel) and the desired detector that you
+    want the jitter time of. Plots and outputs the optimal coincidence window,
+    the jitter time and the delay time.
+    '''
+    delay = []
+    trigger = 2
+    for i, (time, channel) in enumerate(data):
+        if channel == trigger:
+            j = 1
+            # Removing dark counts from other detectors
+            while data[i+j][1] != detector and data[i+j][1] != trigger:  # and i+j+1<len(data):
+                j += 1
+            # Only appends signals in desired detector
+            if data[i+j][1] == detector:
+                delay.append(data[i+j][0] - data[i][0])
+    (delay_time, sigma) = norm.fit(delay)
+    n, bins, patches = plt.hist(delay, bins=3, density=1, facecolor='green',
+                                alpha=0.75)
+    # Adds a line of best fit
+    y = norm.pdf(bins, delay_time, sigma)
+    plt.plot(bins, y, 'r--', linewidth=2)
+    # Coincidence window
+    window = delay_time + 3*sigma
+    # Jitter time
+    FWHM = 2.355 * sigma
+    plt.show()
+    return window, FWHM, delay_time
 
-#If difference between the trigger and the detector is more than the coincidence window, populate new array with the polarisation that this is associated with ie. V,H,+,-.
-
-#Populate another array saying which basis was used.
-
-#Jitter time
-
-#Need to check to see that the trigger is before instead of after. May take more time for trigger to get to detector?
-
-#Compare code between Alice and Bob. Remove their incorrect basis choice. In another function. Takes the polarisation and basis for both Alice and Bob.
-#Compare bases for both and edisregrd the measurements at the 
-#Think about what if the arrays are not the same size because a darkcount has been detected or remove a correct count. 
-
-'''
-Does the laser send a photon when the trigger goes on? Will the voltage be applied to this photon in time for it to reach the EOM?
-Maybe set a certain polarisation with a voltage first.
-'''
 
 def verification(data, co_window=10):
     '''
     Takes in a list of tuples (time, channel) and a coincidence window in
-    number of bins. Outputs a list of polarisations and the basis of measurement
-    as a list of strings
+    number of bins. Outputs a list of polarisations and the basis of
+    measurement as a list of strings
     '''
     polar = {1: 'V',
              2: 'H',
@@ -61,35 +92,6 @@ def verification(data, co_window=10):
     return polarisation, basis
 
 
-def jitter_time(data, detector):
-    '''
-    Takes in a list of tuples (time, channel) and the desired detector that you
-    want the jitter time of. Plots and outputs the jitter time and optimal
-    coincidence window.
-    '''
-    delay = []
-    trigger = 2
-    for i, (time, channel) in enumerate(data):
-        if channel == trigger:
-            j = 1
-            # Removing dark counts from other detectors
-            while data[i+j][1] != detector and data[i+j][1] != trigger:
-                j += 1
-            # Only appends signals in desired detector
-            if data[i+j][1] != trigger:
-                delay.append(data[i+j][0] - data[i][0])
-    (mu, sigma) = norm.fit(delay)
-    n, bins, patches = plt.hist(delay, bins=3, density=1, facecolor='green', alpha=0.75)
-    # Adds a line of best fit
-    y = norm.pdf(bins, mu, sigma)
-    plt.plot(bins, y, 'r--', linewidth=2)
-    # Coincidence window
-    window = mu + 3*sigma
-    FWHM = 2.355 * sigma
-    plt.show()
-    return window, FWHM
-    
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', type=argparse.FileType('r'),
@@ -98,10 +100,13 @@ if __name__ == "__main__":
                         help='Input coincidence window')
     parser.add_argument('--detector', type=int,
                         help='Input detector for jitter measurement')
+    parser.add_argument('--bin_width', type=int,
+                        help='Input bin width')
     args = parser.parse_args()
     lines = args.filename.readlines()
     times = []
     for line in lines:
         times.append(tuple(map(float, line.strip().split(','))))
-    verification(times, args.co_window)
-    jitter_time(times, args.detector)
+    print(verification(times, args.co_window))
+    print(jitter_and_delay(times, args.detector))
+    print(dark_counts(times, args.bin_width))
