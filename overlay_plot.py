@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from matplotlib.ticker import MaxNLocator
+from pathlib import Path
 
 def voltage_of_max_power(voltage, power):
     max_idx = np.argmax(power)
@@ -18,16 +19,16 @@ def get_index(value, df):
 
 if __name__ == "__main__":
     
-    detector_1 = 'sweep_data_detector 1_7.csv'
-    detector_2 = 'sweep_data_detector 2_7.csv'
-    detector_3 = 'sweep_data_detector 3_7.csv'
-    detector_4 = 'sweep_data_detector 4_7.csv'
-    path = 'sweep_data/2020-03-11/'
+    detector_1 = "sweep_data_detector_1_7.csv"
+    detector_2 = 'sweep_data_detector_2_7.csv'
+    detector_3 = 'sweep_data_detector_3_7.csv'
+    detector_4 = 'sweep_data_detector_4_7.csv'
+    path = Path("sweep_data/2020-03-12/")
 
-    detector_1 = path + detector_1
-    detector_2 = path + detector_2
-    detector_3 = path + detector_3
-    detector_4 = path + detector_4
+    detector_1 = path / detector_1
+    detector_2 =  path / detector_2
+    detector_3 =  path / detector_3
+    detector_4 =  path / detector_4
 
     # Detector 1
     df = pd.read_csv(detector_1, sep=',', header=None ,
