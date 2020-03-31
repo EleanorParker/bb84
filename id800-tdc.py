@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 
 
+'''
 def dark_counts(data, bin_width):
     # Number of counts in each detector
     counts1 = 0
@@ -30,7 +31,7 @@ def dark_counts(data, bin_width):
     rate3 = counts3 / tot_time
     rate4 = counts4 / tot_time
     return rate1, rate2, rate3, rate4
-
+'''
 
 def jitter_and_delay(data, detector):
     '''
@@ -39,22 +40,37 @@ def jitter_and_delay(data, detector):
     the jitter time and the delay time.
     '''
     delay = []
-    trigger = 2
+    trigger = 8
     for i, (time, channel) in enumerate(data):
-        if channel == trigger:
+        if channel == trigger and i<len(data):
             j = 1
             # Removing dark counts from other detectors
-            while data[i+j][1] != detector and data[i+j][1] != trigger:  # and i+j+1<len(data):
+            while i+j<len(data) and data[i+j][1] != detector and data[i+j][1] != trigger:  # and :
                 j += 1
             # Only appends signals in desired detector
-            if data[i+j][1] == detector:
+            if i+j<len(data) and data[i+j][1] == detector:
                 delay.append(data[i+j][0] - data[i][0])
+
+    delay = [(x * 81 *10**-12)*10**8 for x in delay]
+    '''
+    # For 1st histogram
     (delay_time, sigma) = norm.fit(delay)
-    n, bins, patches = plt.hist(delay, bins=3, density=1, facecolor='green',
-                                alpha=0.75)
+    n, bins, patches = plt.hist(delay, bins=50, facecolor='green')
+    '''
+    # After 1st histogram            
+    delay_filt = []
+    for x in delay:
+        if x > 1 and x <6:
+            delay_filt.append(x)     
+    (delay_time, sigma) = norm.fit(delay_filt)
+    n, bins, patches = plt.hist(delay_filt, bins=50, facecolor='green')
+    
+    print(delay_filt)
+    
     # Adds a line of best fit
-    y = norm.pdf(bins, delay_time, sigma)
-    plt.plot(bins, y, 'r--', linewidth=2)
+    lnspc = np.linspace(1, 6, bins)
+    y = norm.pdf(lnspc, delay_time, sigma)
+    plt.plot(lnspc, y, 'r--', linewidth=2)
     # Coincidence window
     window = delay_time + 3*sigma
     # Jitter time
@@ -97,7 +113,7 @@ if __name__ == "__main__":
     parser.add_argument('filename', type=argparse.FileType('r'),
                         help='Input file containing time stamp and channel')
     parser.add_argument('--co_window', default=10, type=int,
-                        help='Input coincidence window')
+                        help='Input coincidence window in bins')
     parser.add_argument('--detector', type=int,
                         help='Input detector for jitter measurement')
     parser.add_argument('--bin_width', type=int,
@@ -107,6 +123,6 @@ if __name__ == "__main__":
     times = []
     for line in lines:
         times.append(tuple(map(float, line.strip().split(','))))
-    print(verification(times, args.co_window))
+    #print(verification(times, args.co_window))
     print(jitter_and_delay(times, args.detector))
-    print(dark_counts(times, args.bin_width))
+

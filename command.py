@@ -25,10 +25,10 @@ import time
 EXPERIMENTAL PARAMETERS
 """
 # voltages in V (MAX 5V)
-VOL_1 = 0
-VOL_2 = 0.25
-VOL_3 = 0.5
-VOL_4 = 1
+VOL_1 = 0.4
+VOL_2 = -0.005
+VOL_3 = -0.333
+VOL_4 = -0.748
 
 BLOCK_SIZE = 4 # number of pulses in block
 PULSE_LENGTH = 1 # pulse lenght in secounds
@@ -69,7 +69,7 @@ awg.write('DATA:COPY STEPFUNC')
 awg.write('FUNC:USER STEPFUNC') # Selects the user function
 
 # execute message
-awg.write('APPL:USER 10, 5 Vpp, 0') #frequency, amplitude, offset
+awg.write('APPL:USER 1000000, 5 Vpp, 0') #frequency, amplitude, offset
 
 
 # set device to trigger
@@ -91,12 +91,13 @@ awg.write('BURS:PHAS 0')
 awg.write('TRIG:SOUR IMM')
 awg.write('BURS:STAT ON')
 '''
-
+awg.write('TRIG:SOUR EXT')
 #awg.write('OUTP:TRIG ON')
 awg.write('BURS:MODE TRIG')
-awg.write('BURS:NCYC 10')
+#awg.write('BURSt:GATE:POLarity INV')
+awg.write('BURS:NCYC 1')
 awg.write('BURS:INT:PER 4')
-awg.write('TRIG:SOUR IMM')
+
 awg.write('BURS:STAT ON')
 
 '''
